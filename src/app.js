@@ -1,10 +1,11 @@
 import express from "express";
 import conectaNaDataBase from "./config/dbConnect.js";
+import livro from "./models/livros.js";
 
 const conexao = await conectaNaDataBase();
 
 conexao.on("error", (erro) => {
-    conosole.error("erro de conexão", erro);
+    console.error("erro de conexão", erro);
 });
 
 conexao.once("open", () => {
@@ -14,52 +15,61 @@ conexao.once("open", () => {
 const app = express();
 app.use(express.json());
 
-const livros = [
-    {
-        id: 1,
-        titulo: "O Senhor dos Anéis"
-    },
-    {
-        id: 2,
-        titulo: "O Hobbit"
-    }
-]
-
-function buscaLivro(id) {
-    return livros.findIndex(livro => {
-        return livro.id === Number(id);
-    });
-}
-
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
     res.status(200).send("Curso de Node.js");
 });
 
-app.get("/livros", (req, res) => {
-    res.status(200).json(livros);
+app.get("/livros", async (req, res) => {
+    try {
+        const listaLivros = await livro.find({});
+        res.status(200).json(listaLivros);
+    } catch (erro) {
+        res.status(500).json({ message: "Erro ao buscar livros", erro: String(erro) });
+    }
 });
 
-app.get("/livros/:id", (req, res) => {
-    const index = buscaLivro(req.params.id);
-    res.status(200).json(livros[index]);
+app.get("/livros/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const livroEncontrado = await livro.findById(id);
+        if (!livroEncontrado) return res.status(404).json({ message: "Livro não encontrado" });
+        res.status(200).json(livroEncontrado);
+    } catch (erro) {
+        res.status(500).json({ message: "Erro ao buscar livro", erro: String(erro) });
+    }
 });
 
-app.post("/livros", (req,res) => {
-    livros.push(req.body);
-    res.status(201).send("livro cadastrado com sucesso");
+app.post("/livros", async (req, res) => {
+    try {
+        const novoLivro = await livro.create(req.body);
+        res.status(201).json(novoLivro);
+    } catch (erro) {
+        res.status(400).json({ message: "Erro ao cadastrar livro", erro: String(erro) });
+    }
 });
 
-app.put("/livros/:id", (req, res) => {
-    const index = buscaLivro(req.params.id);
-    livros[index].titulo = req.body.titulo;
-    res.status(200).json(livros); 
+app.put("/livros/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const atualizando = await livro.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+        if (!atualizando) return res.status(404).json({ message: "Livro não encontrado" });
+        res.status(200).json(atualizando);
+    } catch (erro) {
+        res.status(400).json({ message: "Erro ao atualizar livro", erro: String(erro) });
+    }
 });
 
-app.delete("/livros/:id", (req, res) =>{
-    const index = buscaLivro(req.params.id);
-    livros.splice(index, 1);
-    res.status(200).send("Livro removido com sucesso!");
+app.delete("/livros/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const removido = await livro.findByIdAndDelete(id);
+        if (!removido) return res.status(404).json({ message: "Livro não encontrado" });
+        res.status(200).json({ message: "Livro removido com sucesso" });
+    } catch (erro) {
+        res.status(500).json({ message: "Erro ao remover livro", erro: String(erro) });
+    }
 });
 
 export default app;
+
 
