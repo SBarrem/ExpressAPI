@@ -1,32 +1,22 @@
 import express from "express";
 import conectaNaDataBase from "./config/dbConnect.js";
 import livro from "./models/livros.js";
+import routes from "./routes/index.js";
 
 const conexao = await conectaNaDataBase();
 
-conexao.on("error", (erro) => {
-    console.error("erro de conexão", erro);
-});
+if (conexao) {
+    conexao.on("error", (erro) => {
+        console.error("erro de conexão", erro);
+    });
 
-conexao.once("open", () => {
-    console.log("Conexão feita com sucesso!");
-});
+    conexao.once("open", () => {
+        console.log("Conexão feita com sucesso!");
+    });
+}
 
 const app = express();
-app.use(express.json());
-
-app.get("/", (req, res) => {
-    res.status(200).send("Curso de Node.js");
-});
-
-app.get("/livros", async (req, res) => {
-    try {
-        const listaLivros = await livro.find({});
-        res.status(200).json(listaLivros);
-    } catch (erro) {
-        res.status(500).json({ message: "Erro ao buscar livros", erro: String(erro) });
-    }
-});
+routes(app);
 
 app.get("/livros/:id", async (req, res) => {
     try {
