@@ -1,11 +1,11 @@
-import Autor, { autor } from "../models/Autor.js";
+import { autor } from "../models/Autor.js";
 
 class AutorController {
 
       static async listarAutores (req, res) {
     try {
       const listarAutores = await autor.find({});
-      res.status(200).json(listaAutores);
+      res.status(200).json(listarAutores);
     } catch (erro) {
       res.status(500).json({ message: `${erro.message} - falha na requisição` });
     }
