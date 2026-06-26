@@ -10,7 +10,6 @@ routes(app);
 app.delete("/livros/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         const removido = await livro.findByIdAndDelete(id);
 
         if (!removido) {
