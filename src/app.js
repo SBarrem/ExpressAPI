@@ -1,5 +1,5 @@
 import express from "express";
-import livro from "./models/livros.js";
+import livro from "./models/Livros.js";
 import routes from "./routes/index.js";
 
 const app = express();
